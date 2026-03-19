@@ -1,29 +1,47 @@
 {% extends "layout.html" %}
 {% block content %}
-<h1 class="history-title">Diagnosis <span class="highlight">History</span></h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+    <h1 class="history-title" style="margin-bottom: 0;">Clinical <span class="highlight">History</span></h1>
+    <a href="{{ url_for('predict') }}" class="btn-primary">New Analysis <i class="fa-solid fa-plus"></i></a>
+</div>
+
 {% if history %}
 <div class="history-grid">
     {% for item in history %}
-    <div class="history-card glass">
+    <div class="history-card glass"
+        style="border-bottom: 3px solid {% if item.prediction == 'Normal' %}var(--accent-color){% elif item.prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %};">
         <div class="history-img-container">
             <img src="{{ url_for('static', filename='uploads/' + item.image_file) }}" alt="Diagnosis History Image">
         </div>
         <div class="history-details">
-            <p class="history-pred">{{ item.prediction }}</p>
-            <p class="history-conf">Confidence: {{ (item.confidence * 100) | round(2) }}%</p>
-            <p class="history-date"><i class="fa-regular fa-calendar" style="margin-right: 5px;"></i> {{
-                item.date_uploaded.strftime('%Y-%m-%d %H:%M') }}</p>
+            <div class="history-badge"
+                style="background: {% if item.prediction == 'Normal' %}rgba(16, 185, 129, 0.1){% elif item.prediction == 'Ulcer' %}rgba(245, 158, 11, 0.1){% else %}rgba(239, 68, 68, 0.1){% endif %}; color: {% if item.prediction == 'Normal' %}var(--accent-color){% elif item.prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %}; padding: 3px 10px; border-radius: 5px; font-size: 0.75rem; font-weight: 700; display: inline-block; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                {{ item.prediction | upper }}
+            </div>
+            <h3 style="margin-bottom: 5px; font-size: 1.1rem;">Analysis #{{ loop.revindex }}</h3>
+            <p class="history-conf" style="font-size: 0.9rem; color: var(--text-secondary);">Confidence Score: <span
+                    style="color: #fff; font-weight: 600;">{{ (item.confidence * 100) | round(2) }}%</span></p>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                <p class="history-date"><i class="fa-regular fa-clock" style="margin-right: 5px;"></i> {{
+                    item.date_uploaded.strftime('%b %d, %Y') }}</p>
+                <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; color: var(--primary-color);"></i>
+            </div>
         </div>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="empty-state glass" style="padding: 4rem; text-align: center; border-radius: 20px;">
-    <i class="fa-solid fa-folder-open" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 2rem;"></i>
-    <h2>No History Found</h2>
-    <p style="color: var(--text-secondary); margin-top: 1rem;">It looks like you haven't uploaded any endoscopy images
-        yet. Start using the system to keep track of your diagnosis history.</p>
-    <a href="{{ url_for('predict') }}" class="btn-primary" style="display: inline-block; margin-top: 2rem;">Scan Now</a>
+<div class="empty-state glass" style="padding: 6rem 2rem; text-align: center; border-radius: 30px;">
+    <div class="accuracy-circle" style="width: 120px; height: 120px; margin: 0 auto 30px;">
+        <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-secondary);"></i>
+    </div>
+    <h2 style="font-size: 2rem;">Archive is Empty</h2>
+    <p style="color: var(--text-secondary); margin-top: 1rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+        Your diagnostic repository is currently unoccupied. Once you perform neural analyses on endoscopy images, they
+        will be archived here for your longitudinal clinical review.</p>
+    <a href="{{ url_for('predict') }}" class="btn-primary"
+        style="display: inline-block; margin-top: 3rem; padding: 15px 40px;">Initiate Primary Scan</a>
 </div>
 {% endif %}
 {% endblock %}

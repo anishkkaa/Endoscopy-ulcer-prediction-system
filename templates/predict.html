@@ -2,46 +2,135 @@
 {% block content %}
 <section class="predict-section">
     {% if not prediction %}
-    <div class="upload-card glass">
+    <div class="upload-card glass" id="drop-area">
         <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-        <h2>Upload Endoscopy Image</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Supported formats: JPEG, PNG. Please ensure the
-            image is clear for accurate diagnosis.</p>
-        <form method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" id="file" class="form-control"
-                style="background: rgba(255,255,255,0.05); margin-bottom: 1.5rem;" required>
-            <button type="submit" class="btn-primary submit-btn">Run Diagnosis <i class="fa-solid fa-bolt"></i></button>
-        </form>
-    </div>
-    {% else %}
-    <div class="result-card glass">
-        <div class="result-image">
-            <img src="{{ url_for('static', filename='uploads/' + image_file) }}" alt="Diagnosis Result">
-        </div>
-        <div class="result-info">
-            <p class="result-label">Diagnosis Result:</p>
-            <h2 class="result-value">{{ prediction }}</h2>
-            <p class="result-label">Confidence Score:</p>
-            <div class="confidence-bar-container"
-                style="background: rgba(255,255,255,0.1); height: 12px; border-radius: 6px; margin: 10px 0;">
-                <div class="confidence-bar"
-                    style="width: {{ confidence }}; height: 100%; background: var(--accent-color); border-radius: 6px;">
+        <h2 style="margin-bottom: 10px;">Diagnostic Upload</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 400px;">Supported formats: JPEG, PNG.
+            Raw frames from Olympus or Pentax systems preferred.</p>
+
+        <form method="POST" enctype="multipart/form-data" id="prediction-form">
+            <div class="file-input-wrapper" style="position: relative; margin-bottom: 2rem;">
+                <input type="file" name="file" id="file" class="form-control"
+                    style="background: rgba(255,255,255,0.05); padding: 50px 20px; border: 2px dashed var(--glass-border); cursor: pointer;"
+                    required>
+                <div id="preview-container" style="display: none; margin-top: 20px;">
+                    <img id="image-preview" src="#" alt="Preview"
+                        style="max-width: 100%; max-height: 300px; border-radius: 10px; border: 1px solid var(--primary-color);">
                 </div>
             </div>
-            <p style="font-size: 1.2rem; font-weight: 600; color: #fff;">{{ confidence }}</p>
-            <a href="{{ url_for('predict') }}" class="btn-primary"
-                style="display: inline-block; margin-top: 2rem; width: auto; border: none; cursor: pointer;">New Scan <i
-                    class="fa-solid fa-rotate-right"></i></a>
+            <button type="submit" class="btn-primary submit-btn" id="submit-btn" style="width: 100%; padding: 15px;">Run
+                Neural Analysis <i class="fa-solid fa-brain" style="margin-left: 10px;"></i></button>
+        </form>
+
+        <div id="loader" style="display: none; margin-top: 20px;">
+            <div class="accuracy-circle" style="width: 100px; height: 100px; margin: 0 auto;">
+                <i class="fa-solid fa-microchip" style="font-size: 2rem; color: var(--primary-color);"></i>
+            </div>
+            <p style="margin-top: 15px; color: var(--primary-color); font-weight: 600; letter-spacing: 1px;">ANALYZING
+                PIXELS...</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="result-card glass"
+        style="border-top: 4px solid {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %};">
+        <div class="result-image">
+            <div style="position: relative;">
+                <div class="scan-line"></div>
+                <img src="{{ url_for('static', filename='uploads/' + image_file) }}" alt="Diagnosis Result">
+            </div>
+        </div>
+        <div class="result-info">
+            <div class="badge"
+                style="background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 15px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px; display: inline-block;">
+                ANALYSIS COMPLETE</div>
+            <p class="result-label">Classification Result:</p>
+            <h2 class="result-value"
+                style="color: {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %};">
+                {{ prediction }}</h2>
+
+            <p class="result-label" style="margin-top: 20px;">AI Confidence Level:</p>
+            <div class="confidence-bar-container"
+                style="background: rgba(255,255,255,0.05); height: 16px; border-radius: 8px; margin: 12px 0; overflow: hidden; border: 1px solid var(--glass-border);">
+                <div class="confidence-bar"
+                    style="width: {{ confidence }}; height: 100%; background: {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %}; border-radius: 8px; position: relative;">
+                    <div
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shine 2s infinite;">
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 1.5rem; font-weight: 800; color: #fff;">{{ confidence }}</p>
+
+            <div style="margin-top: 30px; display: flex; gap: 15px;">
+                <a href="{{ url_for('predict') }}" class="btn-primary" style="flex: 1; text-align: center;">New Scan <i
+                        class="fa-solid fa-rotate-right" style="margin-left: 5px;"></i></a>
+                <a href="{{ url_for('history') }}" class="nav-item glass"
+                    style="padding: 10px 20px; border-radius: 30px; display: flex; align-items: center; justify-content: center;">View
+                    History</a>
+            </div>
         </div>
     </div>
     {% endif %}
 </section>
-{% endblock %}
-{% block styles %}
+
+<script>
+    const fileInput = document.getElementById('file');
+    const previewContainer = document.getElementById('preview-container');
+    const previewImage = document.getElementById('image-preview');
+    const form = document.getElementById('prediction-form');
+    const loader = document.getElementById('loader');
+    const submitBtn = document.getElementById('submit-btn');
+
+    fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                previewImage.setAttribute('src', event.target.result);
+                previewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    if (form) {
+        form.addEventListener('submit', function () {
+            form.style.display = 'none';
+            loader.style.display = 'block';
+        });
+    }
+</script>
+
 <style>
-    .prediction-card {
-        background: var(--glass-bg);
-        padding: 30px;
+    .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: var(--primary-color);
+        box-shadow: 0 0 15px var(--primary-color);
+        z-index: 5;
+        top: 0;
+        animation: scan 3s linear infinite;
+        opacity: 0.5;
+    }
+
+    @keyframes scan {
+        0% {
+            top: 0;
+        }
+
+        100% {
+            top: 100%;
+        }
+    }
+
+    @keyframes shine {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
     }
 </style>
 {% endblock %}
