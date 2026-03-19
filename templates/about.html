@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title %}About - Endoscopy Classification{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <h1>About</h1>
+
+  <p>This demo uses a TensorFlow/Keras convolutional neural network to classify endoscopy images into three categories:</p>
+  <ul>
+    {% for cls in class_names %}
+    <li>{{ cls }}</li>
+    {% endfor %}
+  </ul>
+
+  <p>The model is trained in <code>endoscopy-classsification.ipynb</code> and saved as <code>best_model.keras</code>. Use the prediction page to upload an image and get a prediction.</p>
+
+  <p><strong>Note:</strong> This is a demo app with an in-memory user store. For a production system, add a database and secure authentication layer.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block title %}Prediction - Endoscopy Classification{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="content-card">
+      <h2>Image Prediction</h2>
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="image" class="form-label">Upload an image</label>
+          <input class="form-control" type="file" id="image" name="image" accept="image/*" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Predict</button>
+      </form>
+
+      {% if prediction %}
+      <div class="mt-4">
+        <h3>Prediction</h3>
+        <p><strong>Predicted class:</strong> {{ prediction.label }}</p>
+        <p><strong>Confidence:</strong> {{ (prediction.confidence * 100) | round(2) }}%</p>
+        <h5>All scores</h5>
+        <ul>
+          {% for label, prob in prediction.all.items() %}
+          <li>{{ label }}: {{ (prob * 100) | round(2) }}%</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="content-card">
+      {% if uploaded_filename %}
+      <h2>Uploaded image</h2>
+      <img
+        src="{{ url_for('static', filename='uploads/' ~ uploaded_filename) }}"
+        alt="Uploaded image"
+        class="img-fluid rounded preview-img"
+      />
+      {% endif %}
+
+      <div class="mt-4">
+        <h5>Tips</h5>
+        <ul>
+          <li>Use clear, centered images of the endoscopy frame.</li>
+          <li>Image size is automatically resized to 256x256 pixels.</li>
+          <li>For best results, use images similar to the training set.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

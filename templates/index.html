@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}Home - Endoscopy Classification{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="container-fluid py-5">
+    <h1 class="display-5 fw-bold">Endoscopy Classification</h1>
+    <p class="col-md-8 fs-5">Upload an endoscopic image and get a prediction of the most likely condition.
+      You can register and sign in to keep track of your predictions.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('predict') }}" role="button">Make a Prediction</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="content-card">
+      <h2>Quick start</h2>
+      <ol>
+        <li>Register for an account (optional).</li>
+        <li>Log in.</li>
+        <li>Upload an image via the <strong>Prediction</strong> page.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="content-card">
+      <h2>Model classes</h2>
+      <ul>
+        {% for cls in class_names %}
+        <li>{{ cls }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
