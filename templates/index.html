@@ -1,37 +1,44 @@
 {% extends "layout.html" %}
-
-{% block title %}Home - Endoscopy Classification{% endblock %}
-
 {% block content %}
-<div class="hero">
-  <div class="container-fluid py-5">
-    <h1 class="display-5 fw-bold">Endoscopy Classification</h1>
-    <p class="col-md-8 fs-5">Upload an endoscopic image and get a prediction of the most likely condition.
-      You can register and sign in to keep track of your predictions.</p>
-    <a class="btn btn-primary btn-lg" href="{{ url_for('predict') }}" role="button">Make a Prediction</a>
-  </div>
-</div>
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Early Detection is the <span class="highlight">Key to Recovery</span></h1>
+        <p class="hero-description">Utilizing state-of-the-art Deep Learning models to analyze endoscopy images and
+            detect abnormalities such as AVMs and Ulcers with high precision.</p>
+        <div class="hero-btns">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('predict') }}" class="btn-primary">Start Diagnosis</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn-primary">Join Today</a>
+            <a href="{{ url_for('login') }}" class="nav-item" style="margin-left: 20px;">Explore Features</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
+            alt="Medical Technology">
+    </div>
+</section>
 
-<div class="row">
-  <div class="col-md-6">
-    <div class="content-card">
-      <h2>Quick start</h2>
-      <ol>
-        <li>Register for an account (optional).</li>
-        <li>Log in.</li>
-        <li>Upload an image via the <strong>Prediction</strong> page.</li>
-      </ol>
+<section class="features"
+    style="margin-top: 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+    <div class="feature-item glass" style="padding: 2.5rem; text-align: center; border-radius: 20px;">
+        <i class="fa-solid fa-bolt" style="font-size: 3rem; color: #fbbf24; margin-bottom: 20px;"></i>
+        <h3>Instant Predictions</h3>
+        <p style="color: var(--text-secondary); margin-top: 15px;">Get results in seconds using our optimized AI
+            inference engine.</p>
     </div>
-  </div>
-  <div class="col-md-6">
-    <div class="content-card">
-      <h2>Model classes</h2>
-      <ul>
-        {% for cls in class_names %}
-        <li>{{ cls }}</li>
-        {% endfor %}
-      </ul>
+    <div class="feature-item glass" style="padding: 2.5rem; text-align: center; border-radius: 20px;">
+        <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: #10b981; margin-bottom: 20px;"></i>
+        <h3>Secure & Private</h3>
+        <p style="color: var(--text-secondary); margin-top: 15px;">All images are processed securely and your data is
+            safe with us.</p>
     </div>
-  </div>
-</div>
+    <div class="feature-item glass" style="padding: 2.5rem; text-align: center; border-radius: 20px;">
+        <i class="fa-solid fa-clock-rotate-left" style="font-size: 3rem; color: #6366f1; margin-bottom: 20px;"></i>
+        <h3>Diagnosis History</h3>
+        <p style="color: var(--text-secondary); margin-top: 15px;">Keep track of all your past uploads and results for
+            future reference.</p>
+    </div>
+</section>
 {% endblock %}

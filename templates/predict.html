@@ -1,56 +1,47 @@
 {% extends "layout.html" %}
-
-{% block title %}Prediction - Endoscopy Classification{% endblock %}
-
 {% block content %}
-<div class="row">
-  <div class="col-md-6">
-    <div class="content-card">
-      <h2>Image Prediction</h2>
-      <form method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-          <label for="image" class="form-label">Upload an image</label>
-          <input class="form-control" type="file" id="image" name="image" accept="image/*" required />
+<section class="predict-section">
+    {% if not prediction %}
+    <div class="upload-card glass">
+        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+        <h2>Upload Endoscopy Image</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Supported formats: JPEG, PNG. Please ensure the
+            image is clear for accurate diagnosis.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" id="file" class="form-control"
+                style="background: rgba(255,255,255,0.05); margin-bottom: 1.5rem;" required>
+            <button type="submit" class="btn-primary submit-btn">Run Diagnosis <i class="fa-solid fa-bolt"></i></button>
+        </form>
+    </div>
+    {% else %}
+    <div class="result-card glass">
+        <div class="result-image">
+            <img src="{{ url_for('static', filename='uploads/' + image_file) }}" alt="Diagnosis Result">
         </div>
-        <button type="submit" class="btn btn-primary">Predict</button>
-      </form>
-
-      {% if prediction %}
-      <div class="mt-4">
-        <h3>Prediction</h3>
-        <p><strong>Predicted class:</strong> {{ prediction.label }}</p>
-        <p><strong>Confidence:</strong> {{ (prediction.confidence * 100) | round(2) }}%</p>
-        <h5>All scores</h5>
-        <ul>
-          {% for label, prob in prediction.all.items() %}
-          <li>{{ label }}: {{ (prob * 100) | round(2) }}%</li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
+        <div class="result-info">
+            <p class="result-label">Diagnosis Result:</p>
+            <h2 class="result-value">{{ prediction }}</h2>
+            <p class="result-label">Confidence Score:</p>
+            <div class="confidence-bar-container"
+                style="background: rgba(255,255,255,0.1); height: 12px; border-radius: 6px; margin: 10px 0;">
+                <div class="confidence-bar"
+                    style="width: {{ confidence }}; height: 100%; background: var(--accent-color); border-radius: 6px;">
+                </div>
+            </div>
+            <p style="font-size: 1.2rem; font-weight: 600; color: #fff;">{{ confidence }}</p>
+            <a href="{{ url_for('predict') }}" class="btn-primary"
+                style="display: inline-block; margin-top: 2rem; width: auto; border: none; cursor: pointer;">New Scan <i
+                    class="fa-solid fa-rotate-right"></i></a>
+        </div>
     </div>
-  </div>
-
-  <div class="col-md-6">
-    <div class="content-card">
-      {% if uploaded_filename %}
-      <h2>Uploaded image</h2>
-      <img
-        src="{{ url_for('static', filename='uploads/' ~ uploaded_filename) }}"
-        alt="Uploaded image"
-        class="img-fluid rounded preview-img"
-      />
-      {% endif %}
-
-      <div class="mt-4">
-        <h5>Tips</h5>
-        <ul>
-          <li>Use clear, centered images of the endoscopy frame.</li>
-          <li>Image size is automatically resized to 256x256 pixels.</li>
-          <li>For best results, use images similar to the training set.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+    {% endif %}
+</section>
+{% endblock %}
+{% block styles %}
+<style>
+    .prediction-card {
+        background: var(--glass-bg);
+        padding: 30px;
+    }
+</style>
 {% endblock %}

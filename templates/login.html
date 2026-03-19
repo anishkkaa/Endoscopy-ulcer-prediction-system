@@ -1,25 +1,23 @@
 {% extends "layout.html" %}
-
-{% block title %}Login - Endoscopy Classification{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="form-card">
-      <h2 class="mb-4">Login</h2>
-      <form method="post" novalidate>
-        <div class="mb-3">
-          <label for="username" class="form-label">Username</label>
-          <input type="text" class="form-control" id="username" name="username" required />
+<div class="form-card glass">
+    <h1 class="form-title">Welcome Back</h1>
+    <form method="POST" action="">
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" class="form-control" name="email" id="email" required placeholder="Enter your email">
         </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" class="form-control" id="password" name="password" required />
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" name="password" id="password" required
+                placeholder="Enter your password">
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-        <a class="btn btn-link" href="{{ url_for('register') }}">Create account</a>
-      </form>
+        <button type="submit" class="btn-primary"
+            style="width: 100%; border: none; padding: 15px; cursor: pointer; font-size: 1.1rem; margin-top: 1rem;">Login
+            <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+    </form>
+    <div class="form-footer">
+        <p>Don't have an account? <a href="{{ url_for('register') }}">Create an Account</a></p>
     </div>
-  </div>
 </div>
 {% endblock %}

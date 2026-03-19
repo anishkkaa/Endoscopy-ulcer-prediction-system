@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="history-title">Diagnosis <span class="highlight">History</span></h1>
+{% if history %}
+<div class="history-grid">
+    {% for item in history %}
+    <div class="history-card glass">
+        <div class="history-img-container">
+            <img src="{{ url_for('static', filename='uploads/' + item.image_file) }}" alt="Diagnosis History Image">
+        </div>
+        <div class="history-details">
+            <p class="history-pred">{{ item.prediction }}</p>
+            <p class="history-conf">Confidence: {{ (item.confidence * 100) | round(2) }}%</p>
+            <p class="history-date"><i class="fa-regular fa-calendar" style="margin-right: 5px;"></i> {{
+                item.date_uploaded.strftime('%Y-%m-%d %H:%M') }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state glass" style="padding: 4rem; text-align: center; border-radius: 20px;">
+    <i class="fa-solid fa-folder-open" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 2rem;"></i>
+    <h2>No History Found</h2>
+    <p style="color: var(--text-secondary); margin-top: 1rem;">It looks like you haven't uploaded any endoscopy images
+        yet. Start using the system to keep track of your diagnosis history.</p>
+    <a href="{{ url_for('predict') }}" class="btn-primary" style="display: inline-block; margin-top: 2rem;">Scan Now</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,180 +1,175 @@
 import os
-from pathlib import Path
-
-from flask import Flask, flash, redirect, render_template, request, session, url_for
-from werkzeug.security import check_password_hash, generate_password_hash
-
+import datetime
 import numpy as np
+from flask import Flask, render_template, redirect, url_for, flash, request, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_bcrypt import Bcrypt
+from werkzeug.utils import secure_filename
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
-
-BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "best_model.keras"
-DATASET_DIR = BASE_DIR / "dataset"
+from PIL import Image
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret")
+app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-# -- Simple user store (in-memory) -------------------------------------------------
-# NOTE: This is for demo purposes only. For production, use a database.
-users = {}
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
 
-
-def get_class_names():
-    """Get class names from the dataset directory if available."""
-    if DATASET_DIR.exists() and DATASET_DIR.is_dir():
-        return sorted([d.name for d in DATASET_DIR.iterdir() if d.is_dir()])
-    # Fallback if dataset folder is not present.
-    return ["AVM", "Normal", "Ulcer"]
-
-
-CLASS_NAMES = get_class_names()
-
-
-def load_model_safe():
-    if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Run training notebook to create best_model.keras")
-    return tf.keras.models.load_model(str(MODEL_PATH))
-
-
-model = None
-
+# Global variables for model
+_model = None
+MODEL_LOADED = False
+CLASS_NAMES = ['AVM', 'Normal', 'Ulcer']
 
 def get_model():
-    global model
-    if model is None:
-        model = load_model_safe()
-    return model
+    global _model, MODEL_LOADED
+    if _model is None:
+        try:
+            _model = tf.keras.models.load_model('best_model.keras')
+            MODEL_LOADED = True
+            print("Model loaded successfully.")
+        except Exception as e:
+            MODEL_LOADED = False
+            _model = None
+            print(f"Error loading model: {e}")
+    return _model
 
+# Database Models
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    history = db.relationship('ImageHistory', backref='owner', lazy=True)
 
-# Set to True if your model was trained on images normalized to [0, 1].
-# If the training code used raw 0-255 pixel values (as in the notebook), keep this False.
-NORMALIZE_INPUT = False
+class ImageHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image_file = db.Column(db.String(100), nullable=False)
+    prediction = db.Column(db.String(100), nullable=False)
+    confidence = db.Column(db.Float, nullable=False)
+    date_uploaded = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
-def preprocess_image(image_path: str):
-    img = image.load_img(image_path, target_size=(256, 256))
-    x = image.img_to_array(img)
-    if NORMALIZE_INPUT:
-        x = x / 255.0
-    return np.expand_dims(x, axis=0)
-
-
-def predict_image(image_path: str):
+# Utility function for preprocessing and prediction
+def model_predict(img_path):
     model = get_model()
-    x = preprocess_image(image_path)
-    probs = model.predict(x)[0]
-    idx = int(np.argmax(probs))
-    return {
-        "label": CLASS_NAMES[idx] if idx < len(CLASS_NAMES) else str(idx),
-        "confidence": float(probs[idx]),
-        "all": {CLASS_NAMES[i] if i < len(CLASS_NAMES) else str(i): float(probs[i]) for i in range(len(probs))},
-    }
+    if model is None:
+        return "Model Not Loaded", 0.0
+    
+    # Load image with bilinear interpolation to match image_dataset_from_directory
+    img = image.load_img(img_path, target_size=(256, 256), interpolation='bilinear')
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    
+    # The notebook loss (23.68) indicates the model was trained on [0, 255] range.
+    # Therefore, we do NOT divide by 255.0 here.
+    
+    preds = model.predict(img_array)
+    class_idx = np.argmax(preds[0])
+    confidence = float(np.max(preds[0]))
+    
+    return CLASS_NAMES[class_idx], confidence
 
-
-# -- Authentication helpers -------------------------------------------------------
-
-def is_authenticated():
-    return session.get("username") is not None
-
-
-def require_login():
-    if not is_authenticated():
-        flash("Please log in first.", "warning")
-        return redirect(url_for("login"))
-
-
-# -- Routes -----------------------------------------------------------------------
-
+# Routes
 @app.route("/")
+@app.route("/index")
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
-
-@app.route("/register", methods=("GET", "POST"))
+@app.route("/register", methods=['GET', 'POST'])
 def register():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-        confirm = request.form.get("confirm", "")
+    if current_user.is_authenticated:
+        return redirect(url_for('predict'))
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        user = User(username=username, email=email, password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You are now able to log in', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
 
-        if not username or not password:
-            flash("Username and password are required.", "danger")
-        elif password != confirm:
-            flash("Passwords do not match.", "danger")
-        elif username in users:
-            flash("Username already exists. Please choose another.", "danger")
-        else:
-            users[username] = generate_password_hash(password)
-            flash("Registration successful! Please log in.", "success")
-            return redirect(url_for("login"))
-
-    return render_template("register.html")
-
-
-@app.route("/login", methods=("GET", "POST"))
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-
-        stored_hash = users.get(username)
-        if stored_hash and check_password_hash(stored_hash, password):
-            session["username"] = username
-            flash("Logged in successfully.", "success")
-            return redirect(url_for("index"))
-
-        flash("Invalid username or password.", "danger")
-
-    return render_template("login.html")
-
+    if current_user.is_authenticated:
+        return redirect(url_for('predict'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user, remember=request.form.get('remember'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('predict'))
+        else:
+            flash('Login Unsuccessful. Please check email and password', 'danger')
+    return render_template('login.html')
 
 @app.route("/logout")
 def logout():
-    session.clear()
-    flash("Logged out successfully.", "success")
-    return redirect(url_for("index"))
+    logout_user()
+    return redirect(url_for('index'))
 
-
-@app.route("/predict", methods=("GET", "POST"))
+@app.route("/predict", methods=['GET', 'POST'])
+@login_required
 def predict():
-    prediction = None
-    uploaded_filename = None
-
-    if request.method == "POST":
-        if "image" not in request.files:
-            flash("No file part.", "danger")
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part', 'danger')
             return redirect(request.url)
-
-        f = request.files["image"]
-        if f.filename == "":
-            flash("No file selected.", "danger")
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file', 'danger')
             return redirect(request.url)
+        if file:
+            filename = secure_filename(file.filename)
+            # Create a unique filename to avoid collisions
+            unique_filename = f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            # Predict
+            pred_class, confidence = model_predict(file_path)
+            
+            # Save to history
+            history_item = ImageHistory(
+                image_file=unique_filename,
+                prediction=pred_class,
+                confidence=confidence,
+                user_id=current_user.id
+            )
+            db.session.add(history_item)
+            db.session.commit()
+            
+            return render_template('predict.html', 
+                                 title='Prediction Result', 
+                                 image_file=unique_filename,
+                                 prediction=pred_class, 
+                                 confidence=f"{confidence*100:.2f}%")
+                                 
+    return render_template('predict.html', title='Predict Endoscopy Image')
 
-        uploads_dir = BASE_DIR / "static" / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
+@app.route("/history")
+@login_required
+def history():
+    user_history = ImageHistory.query.filter_by(user_id=current_user.id).order_by(ImageHistory.date_uploaded.desc()).all()
+    return render_template('history.html', history=user_history)
 
-        uploaded_filename = f.filename
-        file_path = uploads_dir / uploaded_filename
-        f.save(str(file_path))
-
-        try:
-            prediction = predict_image(str(file_path))
-        except Exception as ex:
-            flash(f"Failed to predict: {ex}", "danger")
-
-    return render_template(
-        "predict.html",
-        prediction=prediction,
-        uploaded_filename=uploaded_filename,
-        class_names=CLASS_NAMES,
-    )
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        # Ensure upload folder exists
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(debug=True)
