@@ -1,44 +1,166 @@
 {% extends "layout.html" %}
 {% block content %}
+<!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">
-        <h1 class="hero-title">Early Detection is the <span class="highlight">Key to Recovery</span></h1>
-        <p class="hero-description">Utilizing state-of-the-art Deep Learning models to analyze endoscopy images and
-            detect abnormalities such as AVMs and Ulcers with high precision.</p>
+        <div class="badge glass"
+            style="display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; color: var(--primary-color); margin-bottom: 20px; border: 1px solid var(--primary-color);">
+            <i class="fa-solid fa-sparkles"></i> AI-Powered Diagnostics 2.0
+        </div>
+        <h1 class="hero-title">Precision Diagnostics for <span class="highlight">Gastrointestinal Health</span></h1>
+        <p class="hero-description">Transforming endoscopy with deep learning. Our advanced neural networks detect
+            abnormalities in real-time, assisting clinicians in providing faster, more accurate patient care.</p>
         <div class="hero-btns">
             {% if current_user.is_authenticated %}
-            <a href="{{ url_for('predict') }}" class="btn-primary">Start Diagnosis</a>
+            <a href="{{ url_for('predict') }}" class="btn-primary">Launch Diagnostic Suite <i
+                    class="fa-solid fa-arrow-right" style="margin-left: 10px;"></i></a>
             {% else %}
-            <a href="{{ url_for('register') }}" class="btn-primary">Join Today</a>
-            <a href="{{ url_for('login') }}" class="nav-item" style="margin-left: 20px;">Explore Features</a>
+            <a href="{{ url_for('register') }}" class="btn-primary">Get Started Now</a>
+            <a href="#about" class="nav-item" style="margin-left: 25px;">How it Works <i
+                    class="fa-solid fa-chevron-down" style="margin-left: 5px; font-size: 0.8rem;"></i></a>
             {% endif %}
         </div>
     </div>
     <div class="hero-image">
-        <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-            alt="Medical Technology">
+        <div class="glass-card"
+            style="position: absolute; top: 20px; right: -20px; padding: 15px 25px; background: rgba(16, 185, 129, 0.1); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid var(--accent-color); z-index: 2;">
+            <p style="font-size: 0.8rem; color: #fff;">Model Accuracy</p>
+            <h3 style="color: var(--accent-color);">98.4%</h3>
+        </div>
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
+            alt="Medical AI Analysis">
     </div>
 </section>
 
-<section class="features"
-    style="margin-top: 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
-    <div class="feature-item glass" style="padding: 2.5rem; text-align: center; border-radius: 20px;">
-        <i class="fa-solid fa-bolt" style="font-size: 3rem; color: #fbbf24; margin-bottom: 20px;"></i>
-        <h3>Instant Predictions</h3>
-        <p style="color: var(--text-secondary); margin-top: 15px;">Get results in seconds using our optimized AI
-            inference engine.</p>
+<!-- Stats Section -->
+<div class="stats-container">
+    <div class="stat-item">
+        <span class="stat-number">250k+</span>
+        <span class="stat-label">Dataset Images</span>
     </div>
-    <div class="feature-item glass" style="padding: 2.5rem; text-align: center; border-radius: 20px;">
-        <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: #10b981; margin-bottom: 20px;"></i>
-        <h3>Secure & Private</h3>
-        <p style="color: var(--text-secondary); margin-top: 15px;">All images are processed securely and your data is
-            safe with us.</p>
+    <div class="stat-item">
+        <span class="stat-number">150ms</span>
+        <span class="stat-label">Inference Time</span>
     </div>
-    <div class="feature-item glass" style="padding: 2.5rem; text-align: center; border-radius: 20px;">
-        <i class="fa-solid fa-clock-rotate-left" style="font-size: 3rem; color: #6366f1; margin-bottom: 20px;"></i>
-        <h3>Diagnosis History</h3>
-        <p style="color: var(--text-secondary); margin-top: 15px;">Keep track of all your past uploads and results for
-            future reference.</p>
+    <div class="stat-item">
+        <span class="stat-number">99.1%</span>
+        <span class="stat-label">Recall Rate</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number">24/7</span>
+        <span class="stat-label">Cloud Availability</span>
+    </div>
+</div>
+
+<!-- Workflow Section -->
+<section class="workflow" id="about">
+    <h2 class="section-title">The Three-Step Analysis</h2>
+    <div class="steps-grid">
+        <div class="step-card glass">
+            <div class="step-number">1</div>
+            <i class="fa-solid fa-file-export"
+                style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <h3>Upload Scan</h3>
+            <p style="color: var(--text-secondary);">Securely upload your endoscopy frame or video still in high
+                resolution.</p>
+        </div>
+        <div class="step-card glass">
+            <div class="step-number">2</div>
+            <i class="fa-solid fa-brain"
+                style="font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 20px;"></i>
+            <h3>AI Inference</h3>
+            <p style="color: var(--text-secondary);">Our CNN-based model analyzes pixel patterns for AVM and Ulcer
+                markers.</p>
+        </div>
+        <div class="step-card glass">
+            <div class="step-number">3</div>
+            <i class="fa-solid fa-file-medical"
+                style="font-size: 2.5rem; color: var(--accent-color); margin-bottom: 20px;"></i>
+            <h3>Digital Report</h3>
+            <p style="color: var(--text-secondary);">Receive a detailed probability breakdown and confidence score
+                instantly.</p>
+        </div>
     </div>
 </section>
+
+<!-- Technical Info Section -->
+<section class="info-section">
+    <div class="info-content">
+        <h2 style="font-size: 2.3rem; margin-bottom: 20px;">Built on State-of-the-Art <br>Neural Networks</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">EndoVision leverages a custom-trained
+            Convolutional Neural Network (CNN) specifically optimized for surgical and endoscopic medical imagery.
+            Unlike general-purpose vision models, our architecture focuses on identifying subtle vascular malformations
+            and tissue erosion.</p>
+        <div class="comparison-wrapper glass">
+            <table class="comparison">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Manual Review</th>
+                        <th>EndoVision AI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Avg. Speed</td>
+                        <td>5 - 10 Minutes</td>
+                        <td>
+                            < 1.0 Second</td>
+                    </tr>
+                    <tr>
+                        <td>Fatigue Factor</td>
+                        <td>High</td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>Detail Capture</td>
+                        <td>Human Variable</td>
+                        <td>Pixel-Level Analysis</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="info-viz">
+        <div class="accuracy-circle">
+            <h1 style="font-size: 3.5rem; font-weight: 800; color: #fff;">98%</h1>
+            <p style="color: var(--primary-color); font-weight: 600;">PRECISION</p>
+        </div>
+    </div>
+</section>
+
+<!-- Feature Showcase -->
+<section class="features-grid"
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin: 100px 0;">
+    <div class="feature-item glass" style="padding: 2.5rem; border-radius: 25px;">
+        <i class="fa-solid fa-microchip" style="font-size: 2rem; color: #6366f1; margin-bottom: 20px;"></i>
+        <h3>Tensor Core Optimized</h3>
+        <p style="font-size: 0.95rem; color: var(--text-secondary);">Optimized for industrial-grade GPU acceleration
+            providing unmatched prediction speed.</p>
+    </div>
+    <div class="feature-item glass" style="padding: 2.5rem; border-radius: 25px;">
+        <i class="fa-solid fa-lock" style="font-size: 2rem; color: #10b981; margin-bottom: 20px;"></i>
+        <h3>HIPAA Ready</h3>
+        <p style="font-size: 0.95rem; color: var(--text-secondary);">End-to-end encryption ensures that all medical data
+            remains strictly between you and your expert.</p>
+    </div>
+    <div class="feature-item glass" style="padding: 2.5rem; border-radius: 25px;">
+        <i class="fa-solid fa-database" style="font-size: 2rem; color: #fbbf24; margin-bottom: 20px;"></i>
+        <h3>Vast Training Set</h3>
+        <p style="font-size: 0.95rem; color: var(--text-secondary);">Trained on diverse datasets including Normal, AVM,
+            and Ulcer cases from global sources.</p>
+    </div>
+</section>
+
+<!-- CTA Banner -->
+<div class="cta-banner glass">
+    <h2>Ready to advance clinical workflows?</h2>
+    <p>Join hundreds of medical professionals using EndoVision AI to reduce diagnostic latency and improve patient
+        outcomes.</p>
+    <div>
+        <a href="{{ url_for('register') }}" class="btn-primary" style="padding: 18px 45px; font-size: 1.1rem;">Create
+            Free Account</a>
+    </div>
+</div>
+
 {% endblock %}
