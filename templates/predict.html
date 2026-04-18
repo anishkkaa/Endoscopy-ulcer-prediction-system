@@ -31,106 +31,60 @@
         </div>
     </div>
     {% else %}
-    <div class="result-card glass"
-        style="border-top: 4px solid {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %};">
+
+    {% set border_color = 'var(--accent-color)' if prediction == 'Normal' else '#f59e0b' if prediction == 'Ulcer' else 'var(--danger-color)' %}
+    
+    <div class="result-card glass" style="border-top: 4px solid {{ border_color }};">
+
         <div class="result-image">
             <div style="position: relative;">
                 <div class="scan-line"></div>
                 <img src="{{ url_for('static', filename='uploads/' + image_file) }}" alt="Diagnosis Result">
             </div>
         </div>
+
         <div class="result-info">
             <div class="badge"
                 style="background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 15px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px; display: inline-block;">
-                ANALYSIS COMPLETE</div>
+                ANALYSIS COMPLETE
+            </div>
+
             <p class="result-label">Classification Result:</p>
             <h2 class="result-value"
                 style="color: {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %};">
-                {{ prediction }}</h2>
+                {{ prediction }}
+            </h2>
 
             <p class="result-label" style="margin-top: 20px;">AI Confidence Level:</p>
+
             <div class="confidence-bar-container"
                 style="background: rgba(255,255,255,0.05); height: 16px; border-radius: 8px; margin: 12px 0; overflow: hidden; border: 1px solid var(--glass-border);">
+
                 <div class="confidence-bar"
-                    style="width: {{ confidence }}; height: 100%; background: {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %}; border-radius: 8px; position: relative;">
+                    style="width: {{ confidence }}%; height: 100%; background: {% if prediction == 'Normal' %}var(--accent-color){% elif prediction == 'Ulcer' %}#f59e0b{% else %}var(--danger-color){% endif %}; border-radius: 8px; position: relative;">
+
                     <div
                         style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shine 2s infinite;">
                     </div>
+
                 </div>
             </div>
+
             <p style="font-size: 1.5rem; font-weight: 800; color: #fff;">{{ confidence }}</p>
 
             <div style="margin-top: 30px; display: flex; gap: 15px;">
-                <a href="{{ url_for('predict') }}" class="btn-primary" style="flex: 1; text-align: center;">New Scan <i
-                        class="fa-solid fa-rotate-right" style="margin-left: 5px;"></i></a>
+                <a href="{{ url_for('predict') }}" class="btn-primary" style="flex: 1; text-align: center;">
+                    New Scan <i class="fa-solid fa-rotate-right" style="margin-left: 5px;"></i>
+                </a>
+
                 <a href="{{ url_for('history') }}" class="nav-item glass"
-                    style="padding: 10px 20px; border-radius: 30px; display: flex; align-items: center; justify-content: center;">View
-                    History</a>
+                    style="padding: 10px 20px; border-radius: 30px; display: flex; align-items: center; justify-content: center;">
+                    View History
+                </a>
             </div>
         </div>
     </div>
+
     {% endif %}
 </section>
-
-<script>
-    const fileInput = document.getElementById('file');
-    const previewContainer = document.getElementById('preview-container');
-    const previewImage = document.getElementById('image-preview');
-    const form = document.getElementById('prediction-form');
-    const loader = document.getElementById('loader');
-    const submitBtn = document.getElementById('submit-btn');
-
-    fileInput.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                previewImage.setAttribute('src', event.target.result);
-                previewContainer.style.display = 'block';
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
-    if (form) {
-        form.addEventListener('submit', function () {
-            form.style.display = 'none';
-            loader.style.display = 'block';
-        });
-    }
-</script>
-
-<style>
-    .scan-line {
-        position: absolute;
-        width: 100%;
-        height: 2px;
-        background: var(--primary-color);
-        box-shadow: 0 0 15px var(--primary-color);
-        z-index: 5;
-        top: 0;
-        animation: scan 3s linear infinite;
-        opacity: 0.5;
-    }
-
-    @keyframes scan {
-        0% {
-            top: 0;
-        }
-
-        100% {
-            top: 100%;
-        }
-    }
-
-    @keyframes shine {
-        0% {
-            transform: translateX(-100%);
-        }
-
-        100% {
-            transform: translateX(100%);
-        }
-    }
-</style>
 {% endblock %}
